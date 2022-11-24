@@ -5,7 +5,7 @@ function [new_img] = getDexiImage(filename)
 
 ending = ".tiff";
 
-% [filename,path] = uigetfile('*' + ending, 'Select an icon file','..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\1.tiff');
+% [filename,path] = uigetfile('*' + ending, 'Select an icon file','..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\140.tiff');
 % if isequal(filename,0)
 %    disp('User selected Cancel');
 % else
@@ -15,6 +15,7 @@ ending = ".tiff";
 %figure, imshow(img_orig);
 
 img_orig = imread(append('..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\', filename));
+
 png = erase(filename,ending) + ".png";
 dexi_img = imread(append('..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\outputs\', png));
 %figure, imshow(dexi_img);
@@ -24,62 +25,70 @@ new_img = skeletonizeDexi(dexi_img);
 
 %% close triangles in edge areas
 endpoints = bwmorph(new_img, "endpoints");
-%figure, imshow(endpoints);
 [row,col] = find(endpoints);
 img_height = size(endpoints,1);
 img_width = size(endpoints,2);
+drawn_lines = zeros(img_height,img_width); % set true for locations of added pixellines
 for pixel=1:size(row,1)
-    if(row(pixel) == 1 || row(pixel) == img_height)
-        dist_to_horizontal_edge = img_width-col(pixel);
-        if(dist_to_horizontal_edge > 200)
-            range = 200;
-        else
-            range = dist_to_horizontal_edge;
-        end
-
-        for d=1:range 
-            if(endpoints(row(pixel),col(pixel)+d) == 1)
-                for draw=1:+d
-                    endpoints(row(pixel),col(pixel)+draw) = 1;
-                end
+    for tolerance=0:1
+        if(row(pixel) == 1 + tolerance || row(pixel) == img_height - tolerance) % only consider endpoints close to image's edge
+            dist_to_horizontal_edge = img_width-col(pixel);
+            if(dist_to_horizontal_edge > 200)
+                range = 200;
+            else
+                range = dist_to_horizontal_edge;
             end
-            continue;
+            % search for second endpoint on same row
+            for d=1:range 
+                if(endpoints(row(pixel),col(pixel)+d) == 1)
+                    for draw=1:+d
+                        endpoints(row(pixel),col(pixel)+draw) = 1;
+                        drawn_lines(row(pixel),col(pixel)+draw) = 1;
+                    end
+                end
+                continue;
+            end
         end
     end
 end
 for pixel=1:size(col,1)
-    if(col(pixel) == 1 || col(pixel) == img_width)
-        dist_to_vertical_edge = img_height-row(pixel);
-        if(dist_to_vertical_edge > 200)
-            range = 200;
-        else
-            range = dist_to_vertical_edge;
-        end
-
-        for d=1:range 
-            if(endpoints(row(pixel)+d,col(pixel)) == 1)
-                for draw=1:+d
-                    endpoints(row(pixel)+draw,col(pixel)) = 1;
-                end
+    for tolerance=1:2
+        if(col(pixel) == 1 + tolerance || col(pixel) == img_width - tolerance)
+            dist_to_vertical_edge = img_height-row(pixel);
+            if(dist_to_vertical_edge > 200)
+                range = 200;
+            else
+                range = dist_to_vertical_edge;
             end
-            continue;
+            % search for second endpoint on same column
+            for d=1:range 
+                if(endpoints(row(pixel)+d,col(pixel)) == 1)
+                    for draw=1:+d
+                        endpoints(row(pixel)+draw,col(pixel)) = 1;
+                        drawn_lines(row(pixel)+draw,col(pixel)) = 1;
+                    end
+                end
+                continue;
+            end
         end
     end
 end
 new_img = endpoints | new_img;
-
+%figure, imshow(new_img);
 
 % fill holes and remove closed objects
 
 holes = imfill(new_img,"holes");
-branchpoints = bwmorph(new_img,"branchpoints");
 %figure, imshow(holes);
+branchpoints = bwmorph(new_img,"branchpoints");
 holes_without_branchpoints = holes & ~(branchpoints);
 rm_filaments = bwareaopen(holes_without_branchpoints,100,4);
 rm_holes = new_img & ~rm_filaments;
 rm_holes = bwareaopen(rm_holes,10,8);
 new_img = rm_holes;
 %figure, imshow(rm_holes);
+new_img = colour_image_border(new_img, 8, 0);
+%figure, imshow(new_img);
 
 %% compare filament length and filaments endpoint distances
 
@@ -152,21 +161,22 @@ new_img = new_img | branchpoints;
 %figure, imshow(new_img);
 end
 
-
 %% remove filaments being part of flocs
 
 img_flocs = find_flocs2(img_orig);
 %figure, imshow(img_flocs);
 
-% se = strel('disk',2);
-% img_flocs = imclose(img_flocs,se);
-% figure, imshow(img_flocs);
-% img_flocs = imdilate(img_flocs,se);
-% figure, imshow(img_flocs);
-% img_flocs = black_image_border(img_flocs, 10);
-% figure, imshow(img_flocs);
-% img_flocs = imfill(img_flocs,"holes");
-% figure, imshow(img_flocs);
+se = strel('disk',2);
+img_flocs = imclose(img_flocs,se);
+%figure, imshow(img_flocs);
+img_flocs = imdilate(img_flocs,se);
+%figure, imshow(img_flocs);
+img_flocs = colour_image_border(img_flocs, 10, 0);
+%figure, imshow(img_flocs);
+img_flocs = imfill(img_flocs,"holes");
+%figure, imshow(img_flocs);
 
 new_img = new_img & ~img_flocs;
+
+
 %figure, imshow(new_img);

@@ -2,15 +2,16 @@ function [new_img] = find_flocs2(img_orig)
 
 % clear;
 % close all;
-
+% 
 % ending = ".tiff";
-
+% 
 % [filename,path] = uigetfile('*' + ending, 'Select an icon file','..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\1.tiff');
 % if isequal(filename,0)
 %    disp('User selected Cancel');
 % else
 %    disp(['User selected ', fullfile(path,filename)]);
 % end
+% img_orig = imread(fullfile(path,filename));
 % png = erase(filename,ending) + ".png";
 % dexi_img = imread(append('..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\outputs\', png));
 
@@ -66,7 +67,7 @@ while changes
     
     for y=1:img_height
         for x=1:img_width
-            if Ier(y,x) < th_erode && I(y,x) >= 5 && I(y,x) < IGaus(y,x) - 0 %120
+            if Ier(y,x) < th_erode && I(y,x) >= 5 && I(y,x) < IGaus(y,x) - 1
                 I(y,x) = 0;
                 changes = true;
             end
@@ -83,6 +84,12 @@ img_flocs = noisy_flocs(img_orig);
 %figure, imshow(img_flocs);
 
 img_flocs = img_flocs | I;
+%figure, imshow(img_flocs);
+
+img_flocs = imdilate(img_flocs,se);
+%figure, imshow(img_flocs);
+
+img_flocs = imclose(img_flocs,se);
 %figure, imshow(img_flocs);
 
 img = bwareaopen(img_flocs, 100);

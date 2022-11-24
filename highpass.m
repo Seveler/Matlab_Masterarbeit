@@ -9,8 +9,6 @@ else
 end
 
 img_orig = imread(fullfile(path,dbfile));
-%img_orig = imresize(img_orig,0.5);
-%img_orig = imadjust(img_orig);
 figure, imshow(img_orig);
 
 img_height = size(img_orig,1);

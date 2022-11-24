@@ -1,7 +1,7 @@
 clear;
 %close all;
 
-[dbfile,path] = uigetfile('*.bmp','Select an icon file','..\Messungen\Mai\1705_klaeranlage_tubus_2.7\2022_05_17_15_36_26_21.bmp');
+[dbfile,path] = uigetfile('*.tiff','Select an icon file','..\Messungen\Mai\1705_klaeranlage_tubus_2.7\2022_05_17_15_36_26_21.bmp');
 if isequal(dbfile,0)
    disp('User selected Cancel');
 else

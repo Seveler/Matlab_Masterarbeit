@@ -16,7 +16,7 @@ for i = 1:N
     M2x = sum_x/length(pixels_x);
     M2y = sum_y/length(pixels_y);
     % computes the R.R.G.
-    RG(i) = sqrt(M2x + M2y) / (obj_diameters(i).EquivDiameter ./2);     
+    RG(i) = sqrt(M2x + M2y) / (obj_diameters(i).EquivDiameter ./2); 
 end
 
 RRG_return = RG;
