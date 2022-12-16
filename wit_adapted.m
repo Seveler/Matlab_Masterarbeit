@@ -1,16 +1,16 @@
 %% Wit algorithm with adaptions
 
 clear;
-%close all;
-ending = ".tiff";
-[filename,path] = uigetfile('*.tiff','Select an icon file','..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\1.tiff');
+close all;
+ending = ".jpg";
+[filename,path] = uigetfile('*' + ending,'Select an icon file','..\..\Masterarbeit\Messungen\KlaeranlageLeverkusenTurm 15_25_27 9_45_15_2022_11_16 15-06-59\0.jpg');
 if isequal(filename,0)
    disp('User selected Cancel');
 else
    disp(['User selected ', fullfile(path,filename)]);
 end
 png = erase(filename,ending) + ".png";
-labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Labeled\', filename));
+%labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Labeled\', filename));
 % length = size(filename,2);
 % filename(length-2:length) = 'bmp';
 % before_dexined = imread(strcat('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Hiwi\AI-Service\AI-Service\results\DexiNed\nocontrastadjustment_2022_10_27 14-42-45\inputs\',filename));
@@ -18,6 +18,8 @@ labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Maste
 % 
 % filename(length-2:length) = 'png';
 img_orig = imread(fullfile(path,filename));
+img_orig = rgb2gray(img_orig);
+figure, imshow(img_orig);
 
 img_height = size(img_orig,1);
 img_width = size(img_orig,2);
@@ -54,9 +56,9 @@ img = medfilt2(img, [3 3]);
 se = strel('disk',3);
 img = imclose(img,se);
 median_after_closing = median(img(:));
-figure, imshow(img);
+%figure, imshow(img);
 
-figure, imhist(img);
+%figure, imhist(img);
 [counts] = imhist(img);
 peaks = zeros(size(counts,1),1);
 range_val = 5;
@@ -75,7 +77,7 @@ for i=1+range_val:size(counts,1)-range_val
 end
 img = img > peak-2;
 new_img = img;
-figure, imshow(new_img);
+%figure, imshow(new_img);
 
 % img = img < 100;
 % figure, imshow(img);
@@ -83,4 +85,4 @@ figure, imshow(new_img);
 % img = bwareafilt(img, [300, img_height*img_width], 8); % Keep objects with pixelsize between [ , ]
 % figure, imshow(img);
 
-figure, imshow(labeled_img);
+%figure, imshow(labeled_img);

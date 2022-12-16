@@ -12,7 +12,7 @@ ending = ".tiff";
 %    disp(['User selected ', fullfile(path,filename)]);
 % end
 % img_orig = imread(fullfile(path,filename));
-%figure, imshow(img_orig);
+% figure, imshow(img_orig);
 
 img_orig = imread(append('..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\', filename));
 
@@ -30,7 +30,7 @@ img_height = size(endpoints,1);
 img_width = size(endpoints,2);
 drawn_lines = zeros(img_height,img_width); % set true for locations of added pixellines
 for pixel=1:size(row,1)
-    for tolerance=0:1
+    for tolerance=0:10
         if(row(pixel) == 1 + tolerance || row(pixel) == img_height - tolerance) % only consider endpoints close to image's edge
             dist_to_horizontal_edge = img_width-col(pixel);
             if(dist_to_horizontal_edge > 200)
@@ -52,7 +52,7 @@ for pixel=1:size(row,1)
     end
 end
 for pixel=1:size(col,1)
-    for tolerance=1:2
+    for tolerance=0:10
         if(col(pixel) == 1 + tolerance || col(pixel) == img_width - tolerance)
             dist_to_vertical_edge = img_height-row(pixel);
             if(dist_to_vertical_edge > 200)
@@ -90,13 +90,50 @@ new_img = rm_holes;
 new_img = colour_image_border(new_img, 8, 0);
 %figure, imshow(new_img);
 
+
+
+%% remove filaments being part of flocs
+
+img_flocs = find_flocs2(img_orig);
+%figure, imshow(img_flocs);
+
+img_flocs = colour_image_border(img_flocs, 15, 0);
+%figure, imshow(img_flocs);
+
+se = strel('disk',10,8);
+img_flocs = imclose(img_flocs,se);
+%figure, imshow(img_flocs);
+img_flocs = imdilate(img_flocs,se);
+%figure, imshow(img_flocs);
+img_flocs = imfill(img_flocs,"holes");
+%figure, imshow(img_flocs);
+img_flocs = imerode(img_flocs,se);
+%figure, imshow(img_flocs);
+
+se = strel('disk',15,8);
+img_flocs = imopen(img_flocs,se);
+%figure, imshow(img_flocs);
+
+img_flocs = bwareaopen(img_flocs, 100);
+%figure, imshow(img_flocs);
+
+new_img = new_img & ~img_flocs;
+%figure, imshow(new_img);
+
+new_img = rm_obj_with_endpoints_bigger_than(new_img, 3);
+try
+    new_img = IsolateSkeletonSpine(new_img);
+catch
+
+end
+%figure, imshow(new_img);
+
 %% compare filament length and filaments endpoint distances
 
 % get endpoints of objects, that only contain of two endpoints
 % endpoints = bwmorph(new_img, "endpoints");
 % [row,col] = find(endpoints);
 % endpoint_index = sub2ind(size(endpoints),row,col);
-for repeat=1:2
 
 branchpoints = bwmorph(new_img,"branchpoints");
 new_img = new_img & ~branchpoints;
@@ -158,25 +195,4 @@ for i=1:connected_objects.NumObjects    % for every object
     end
 end
 new_img = new_img | branchpoints;
-%figure, imshow(new_img);
-end
-
-%% remove filaments being part of flocs
-
-img_flocs = find_flocs2(img_orig);
-%figure, imshow(img_flocs);
-
-se = strel('disk',2);
-img_flocs = imclose(img_flocs,se);
-%figure, imshow(img_flocs);
-img_flocs = imdilate(img_flocs,se);
-%figure, imshow(img_flocs);
-img_flocs = colour_image_border(img_flocs, 10, 0);
-%figure, imshow(img_flocs);
-img_flocs = imfill(img_flocs,"holes");
-%figure, imshow(img_flocs);
-
-new_img = new_img & ~img_flocs;
-
-
 %figure, imshow(new_img);

@@ -34,12 +34,12 @@ h = fspecial('average',16);
 img = double(img);
 img = 128 + img - imfilter(img,h);
 img = uint8(img);
-figure, imshow(img);
+%figure, imshow(img);
 
 
 
 img = img < 100;
-figure, imshow(img);
+%figure, imshow(img);
 
 img = bwareafilt(img, [300, img_height*img_width], 8); % Keep objects with pixelsize between [ , ]
 figure, imshow(img);

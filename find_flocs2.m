@@ -92,9 +92,7 @@ img_flocs = imdilate(img_flocs,se);
 img_flocs = imclose(img_flocs,se);
 %figure, imshow(img_flocs);
 
-img = bwareaopen(img_flocs, 100);
-%figure, imshow(img);
-new_img = img;
+new_img = img_flocs;
 
 % for i=1:5
 %     I = imopen(I, se);

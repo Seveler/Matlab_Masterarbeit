@@ -63,40 +63,40 @@ img = img > peak-2;
 new_img = img;
 %figure, imshow(new_img);
 
-% %% remove elongated objects (filaments)
-% %% Reduced radius of gyration
-% RG_thresh = 1.3;
-% [L,N] = bwlabel(new_img,8); % isolates each object present in image
-% 
-% obj_centroids = regionprops(L, 'Centroid'); % centroids of each object
-% obj_diameters = regionprops(L, 'EquivDiameter'); % equiv.diameter of " "
-% obj_listPixels = regionprops(L,'PixelIdxList'); % list of white pixels 
-%                                                 % composing each obj.
-% RG = zeros(N,1); %vector containing values R.R.G. for each obj.
-% map_rg = L;
-% 
-% for i = 1:N    
-%     
-%     % coordinates (x,y) of each pixel composing the object
-%     [pixels_y,pixels_x] = ind2sub(size(new_img),obj_listPixels(i).PixelIdxList);   
-%     
-%     % computes distance between each pixel and the obj.'s centroid
-%     sum_x = sum( (pixels_x - obj_centroids(i,1).Centroid(1,1)).^2 );
-%     sum_y = sum( (pixels_y - obj_centroids(i,1).Centroid(1,2)).^2 );
-% 
-%     % computes the moments in each axis
-%     M2x = sum_x/length(pixels_x);
-%     M2y = sum_y/length(pixels_y);
-%     
-%     % computes the R.R.G.
-%     RG(i) = sqrt(M2x + M2y) / (obj_diameters(i).EquivDiameter ./2); 
-%     
-%     % applies R.R.G. threshold
-%     if RG(i) < RG_thresh
-%         new_img(obj_listPixels(i).PixelIdxList) = 1;          
-%     else
-%         new_img(obj_listPixels(i).PixelIdxList) = 0;
-%     end
-% end
+%% remove elongated objects (filaments)
+%% Reduced radius of gyration
+RG_thresh = 1.3;
+[L,N] = bwlabel(new_img,8); % isolates each object present in image
+
+obj_centroids = regionprops(L, 'Centroid'); % centroids of each object
+obj_diameters = regionprops(L, 'EquivDiameter'); % equiv.diameter of " "
+obj_listPixels = regionprops(L,'PixelIdxList'); % list of white pixels 
+                                                % composing each obj.
+RG = zeros(N,1); %vector containing values R.R.G. for each obj.
+map_rg = L;
+
+for i = 1:N    
+    
+    % coordinates (x,y) of each pixel composing the object
+    [pixels_y,pixels_x] = ind2sub(size(new_img),obj_listPixels(i).PixelIdxList);   
+    
+    % computes distance between each pixel and the obj.'s centroid
+    sum_x = sum( (pixels_x - obj_centroids(i,1).Centroid(1,1)).^2 );
+    sum_y = sum( (pixels_y - obj_centroids(i,1).Centroid(1,2)).^2 );
+
+    % computes the moments in each axis
+    M2x = sum_x/length(pixels_x);
+    M2y = sum_y/length(pixels_y);
+    
+    % computes the R.R.G.
+    RG(i) = sqrt(M2x + M2y) / (obj_diameters(i).EquivDiameter ./2); 
+    
+    % applies R.R.G. threshold
+    if RG(i) < RG_thresh
+        new_img(obj_listPixels(i).PixelIdxList) = 1;          
+    else
+        new_img(obj_listPixels(i).PixelIdxList) = 0;
+    end
+end
 %figure ,imshow(new_img);
 

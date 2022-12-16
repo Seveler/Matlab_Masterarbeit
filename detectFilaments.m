@@ -1,4 +1,4 @@
-function [str_return] = detectFilaments(img_file)
+function [str_return] = detectFilaments(img_file) %filename)
 % To call function enter the following line in command window:
 % results = detectFilaments('..\Messungen\2109\2022_09_21_11_10_02_55.bmp')
 
@@ -11,7 +11,8 @@ dilate_value = 16; % Size of square SE used for dilation of dist.-map mask
 
 %% read Image File
 img_orig = imread(img_file);
-
+figure, imshow(img_orig);
+%img_orig = imread(append('..\..\Hiwi\AI-Service\AI-Service\results\DexiNed\Original_2022_11_09 14-06-33\inputs\', filename));
 %% Resizes image
 
 img_orig = imresize(img_orig,0.5);
@@ -40,9 +41,10 @@ clear se
 
 img_var = single( (stdfilt(img)).^2 ); % calculates variance
 img_var = single( img_var./max(max(img_var)) ); % normalization 
-
 img_var = imcrop(img_var, [3 3 691 515]); % removes borders, compromised 
                                           % during variance calculation
+% adjusted_var = imadjust(img_var);                                          
+% figure, imshow(adjusted_var);
 img_bw = img_var > var_thresh; % applies variance threshold
 
 clear img img_var 
@@ -56,7 +58,7 @@ clear img_bw
 
 % Filling
 img_fill = imfill(img_open,'holes');
-
+% figure, imshow(img_fill);
 % Restrict Filling process
 img_sub = bitxor(img_fill,img_open); % detects filled holes
 dist_fill = bwdist(~img_sub); % calculates distance map of filled holes
@@ -85,6 +87,7 @@ clear img_dist dist_mask
 
 % Skeleton
 img_thin = bwmorph(img_fill,'skel',inf);
+figure, imshow(img_thin);
 clear img_fill
 
 %% Isolate Skeleton's Spine
@@ -152,7 +155,7 @@ for i = 1:N   % for each object
     new_img(id_white) = 1;
         
 end
-%figure, imshow(new_img);
+figure, imshow(new_img);
 clear D copyD D2 paths pY offsetY pX offsetX id_white list_idx y x imY imX
 %% Analysis of remaining objects - Reduced radius of gyration
 [L,N] = bwlabel(new_img,8); % isolates each object present in image
@@ -190,9 +193,9 @@ for i = 1:N
     
 end
 
-img_orig_cropped = imcrop(img_orig, [3 3 691 515]);
-figure, imshow(img_orig_cropped);
-figure, imshow(new_img);
+% img_orig_cropped = imcrop(img_orig, [3 3 691 515]);
+% figure, imshow(img_orig_cropped);
+% figure, imshow(new_img);
 % disp(size(img_orig));
 % disp(size(new_img));
 
@@ -205,4 +208,5 @@ total = sum(real_length); % computes the total extend length of filaments
                           % present in the whole image
 
 % returns the file's name, TEFL-Img. and length of each object
-str_return = struct('name',img_file,'total',total,'objs',real_length);
+%str_return = struct('name',img_file,'total',total,'objs',real_length);
+str_return = new_img;

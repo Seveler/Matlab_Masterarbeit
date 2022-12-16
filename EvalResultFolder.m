@@ -37,6 +37,7 @@ for i=start_file:start_file + nfiles - 1
     I = imread(append(folderpath, imagefiles(i).name));
     % ENTER FUNCTION NAME
     result_img = getDexiImage(imagefiles(i).name);
+    %result_img = detectFilaments(imagefiles(i).name); % DIAS
     %figure, imshow(result_img);
 
     result_img_dilated = imdilate(result_img,se);
@@ -48,11 +49,11 @@ for i=start_file:start_file + nfiles - 1
     labeled_img_dilated = imdilate(labeled_img,se);
     %figure, imshow(labeled_img_dilated);
 
-    sizes_differ = not(size(result_img,1:2) == size(labeled_img,1:2));
-    if sizes_differ
-        disp("image sizes differ");
-        return
-    end
+%     sizes_differ = not(size(result_img,1:2) == size(labeled_img,1:2));
+%     if sizes_differ
+%         disp("image sizes differ");
+%         return
+%     end
     sizes = size(labeled_img);
 
     % skip images which dont contain any labled pixels (since next loop
