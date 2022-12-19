@@ -7,8 +7,8 @@ close all;
 
 folderpath = "C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Original\";
 imagefiles = dir(folderpath + "*.tiff");
-nfiles = 100; %length(imagefiles);
-start_file = 1;
+nfiles = 1; %length(imagefiles);
+start_file = 3;
 
 % red colour in labeled images
     R = 236;
@@ -45,9 +45,10 @@ for i=start_file:start_file + nfiles - 1
     counter_result(i) = sum(result_img(:));
     labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Labeled\', imagefiles(i).name));
     %figure, imshow(labeled_img);
-
-    labeled_img_dilated = imdilate(labeled_img,se);
+    
+    labeled_img_dilated = dilate_labels(labeled_img);
     %figure, imshow(labeled_img_dilated);
+    figure, imshow(combine_result_and_label(result_img, labeled_img_dilated));
 
 %     sizes_differ = not(size(result_img,1:2) == size(labeled_img,1:2));
 %     if sizes_differ

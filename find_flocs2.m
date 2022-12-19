@@ -80,10 +80,12 @@ I = I == 0;
 %% add flocs from highpass filtering
 
 
-img_flocs = noisy_flocs(img_orig);
+img_flocs_highpass = noisy_flocs(img_orig);
+img_flocs_variance = variance_flocs(img_orig);
 %figure, imshow(img_flocs);
 
-img_flocs = img_flocs | I;
+img_flocs = img_flocs_highpass | I;
+img_flocs = img_flocs | img_flocs_variance;
 %figure, imshow(img_flocs);
 
 img_flocs = imdilate(img_flocs,se);
