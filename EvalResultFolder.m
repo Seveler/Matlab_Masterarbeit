@@ -7,8 +7,8 @@ close all;
 
 folderpath = "C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Original\";
 imagefiles = dir(folderpath + "*.tiff");
-nfiles = 1; %length(imagefiles);
-start_file = 3;
+nfiles = 100; %length(imagefiles);
+start_file = 1;
 
 % red colour in labeled images
     R = 236;
@@ -31,24 +31,30 @@ rel_pixelcount = zeros(start_file + nfiles - 1,1);
 counter_result = zeros(start_file + nfiles - 1,1);
 counter_label = zeros(start_file + nfiles - 1,1);
 err = zeros(start_file + nfiles - 1,1);
-se = strel('disk',3);
+se_val = 8;
+se = strel('disk', se_val);
 
 for i=start_file:start_file + nfiles - 1
-    I = imread(append(folderpath, imagefiles(i).name));
+    if i == 73 % fehlerhaftes Bild
+        continue;
+    end
+    imagename = strcat(int2str(i), '.tiff');
+    I = imread(append(folderpath, imagename));
     % ENTER FUNCTION NAME
-    result_img = getDexiImage(imagefiles(i).name);
+    result_img = getDexiImage(imagename);
     %result_img = detectFilaments(imagefiles(i).name); % DIAS
     %figure, imshow(result_img);
 
     result_img_dilated = imdilate(result_img,se);
     %figure, imshow(result_img_dilated);
     counter_result(i) = sum(result_img(:));
-    labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Labeled\', imagefiles(i).name));
+    labeled_img = imread(append('C:\Users\phili\OneDrive\Dokumente\HS_Mannheim\Masterarbeit\Messungen\Labeled_Data\Daten\Labeled\', imagename));
     %figure, imshow(labeled_img);
     
-    labeled_img_dilated = dilate_labels(labeled_img);
+    labeled_img_dilated = dilate_labels(labeled_img, se_val);
     %figure, imshow(labeled_img_dilated);
-    figure, imshow(combine_result_and_label(result_img, labeled_img_dilated));
+    result_and_labels = combine_result_and_label(result_img, labeled_img_dilated, se_val);
+    %figure, imshow(result_and_labels);
 
 %     sizes_differ = not(size(result_img,1:2) == size(labeled_img,1:2));
 %     if sizes_differ
@@ -59,6 +65,7 @@ for i=start_file:start_file + nfiles - 1
 
     % skip images which dont contain any labled pixels (since next loop
     % doesnt work otherwise
+    labeled_img_black = zeros(size(result_img,1),size(result_img,2));
     if size(sizes,2) ~= 3
         counter_label(i) = 0;
     else
@@ -67,6 +74,7 @@ for i=start_file:start_file + nfiles - 1
             for x=1:size(labeled_img,2)
                 if labeled_img(y,x,1) == R && labeled_img(y,x,2) == G && labeled_img(y,x,3) == B
                     labeled_img(y,x,:) = 255;
+                    labeled_img_black(y,x) = 1;
                     counter_label(i) = counter_label(i) + 1;
                 else
                     labeled_img(y,x,:) = 0;
@@ -75,23 +83,38 @@ for i=start_file:start_file + nfiles - 1
         end
         %figure, imshow(labeled_img);
     end
+    
+    labeled_img_black_dilated = imdilate(labeled_img_black, se);
+
+    TP_img = result_img_dilated & labeled_img_black;
+    FP_img = result_img & not(labeled_img_black_dilated);
+    TN_img = not(result_img) & not(labeled_img_black_dilated);
+    FN_img = not(result_img_dilated) & labeled_img_black;
 
 %     TP_img = result_img_dilated & labeled_img;
 %     FP_img = result_img & not(labeled_img_dilated);
 %     TN_img = not(result_img) & not(labeled_img_dilated);
 %     FN_img = not(result_img_dilated) & labeled_img;
+
+%     figure, imshow(TP_img);
+%     figure, imshow(FP_img);
+%     figure, imshow(TN_img);
+%     figure, imshow(FN_img);
     
-    TP_img = result_img & labeled_img;
-    FP_img = result_img & not(labeled_img);
-    TN_img = not(result_img) & not(labeled_img);
-    FN_img = not(result_img) & labeled_img;
-    
+%     TP_img = result_img & labeled_img;
+%     FP_img = result_img & not(labeled_img);
+%     TN_img = not(result_img) & not(labeled_img);
+%     FN_img = not(result_img) & labeled_img;
+
     TP(i) = sum(TP_img(:));
     FP(i) = sum(FP_img(:));
     TN(i) = sum(TN_img(:));
     FN(i) = sum(FN_img(:));
-
-    IoU(i) = TP(i)/(TP(i) + FP(i) + FN(i));
+    if TP(i) + FP(i) + FN(i) > 0
+        IoU(i) = TP(i)/(TP(i) + FP(i) + FN(i));
+    else
+        IoU(i) = 0;
+    end
     sensitivity(i) = TP(i)/(TP(i) + FN(i)); %recall
     specificity(i) = TN(i)/(TN(i) + FP(i));
     precision(i) = TP(i)/(TP(i) + FP(i));
